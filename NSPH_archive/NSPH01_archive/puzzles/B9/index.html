@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B9</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f1419;
+            color: white;
+            min-height: 100vh;
+            padding: 40px 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 背景渐变圆 */
+        .floating-circle {
+            position: fixed;
+            pointer-events: none;
+            border-radius: 50%;
+            filter: blur(80px);
+            transition: transform 0.1s linear;
+            z-index: 0;
+        }
+
+        .circle1 {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(90, 159, 212, 0.4) 0%, transparent 70%);
+        }
+
+        .circle2 {
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(160, 255, 250, 0.3) 0%, transparent 70%);
+        }
+
+        /* 返回按钮 */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #e0e0e0;
+            text-decoration: none;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(90, 240, 255, 0.5);
+            transform: translateX(-3px);
+        }
+
+        /* 题目标题 */
+        .puzzle-title {
+            text-align: center;
+            font-size: 40px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #bbffee, #bbe0ff);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+        }
+
+        /* 标签切换区域 */
+        .tab-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .tab-container {
+            display: inline-flex;
+            position: relative;
+            gap: 10px;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 滑动指示器 */
+        .tab-slider {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            height: calc(100% - 12px);
+            background: linear-gradient(135deg, rgba(187, 255, 238, 0.2), rgba(187, 224, 255, 0.2));
+            border: 2px solid rgba(90, 240, 255, 0.5);
+            border-radius: 10px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            box-shadow: 0 0 20px rgba(90, 240, 255, 0.3);
+        }
+
+        .tab-button {
+            position: relative;
+            padding: 12px 50px;
+            background: transparent;
+            border: none;
+            border-radius: 10px;
+            color: #888;
+            cursor: pointer;
+            transition: color 0.3s;
+            font-size: 1em;
+            font-weight: 500;
+            z-index: 1;
+        }
+
+        .tab-button:hover {
+            color: #e0e0e0;
+        }
+
+        .tab-button.active {
+            color: #bbffee;
+        }
+
+        /* 内容区域 */
+        .content-container {
+            background: rgba(33, 37, 41, 0.9);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.5);
+            margin-bottom: 30px;
+            min-height: auto;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 内容样式 */
+        .content-section h2 {
+            color: #bbffee;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(90, 240, 255, 0.3);
+            padding-bottom: 10px;
+        }
+
+        .content-section h3 {
+            color: #bbffee;
+            font-size: 1.2em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+
+        .content-section .ft {
+            line-height: 1.8;
+            font-style: italic;
+            text-align: center;
+            color: #d0d0d0;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .content-section p {
+            line-height: 1.8;
+            color: #d0d0d0;
+            margin-bottom: 15px;
+            font-size: 1.05em;
+        }
+
+        .content-section ul {
+            margin-left: 20px;
+            line-height: 2;
+            color: #d0d0d0;
+        }
+
+        .content-section em{
+            font-weight: bold;
+            font-style: italic;
+        }
+
+        .content-section img {
+            max-width: 90%;
+            height: auto;
+            margin: 20px auto;
+            display: block;
+        }
+
+        .solution-table {
+            width: 60%;
+            border-collapse: collapse;
+            margin: 20px auto;
+        }
+
+        .solution-table td {
+            padding: 15px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: #d0d0d0;
+            font-size: 1.05em;
+            line-height: 1.6;
+        }
+
+        .solution-table td:nth-child(1) {
+            text-align: center;
+        }
+
+        .solution-table td:nth-child(2) {
+            text-align: center;
+        }
+
+        .hint-accordion {
+            margin-bottom: 15px;
+        }
+
+        .hint-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: rgba(0, 250, 154, 0.1);
+            border: 1px solid rgba(0, 250, 154, 0.3);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .hint-header:hover {
+            background: rgba(0, 250, 154, 0.15);
+            border-color: rgba(0, 250, 154, 0.5);
+        }
+
+        .hint-header.active {
+            background: rgba(0, 250, 154, 0.2);
+            border-color: #00fa9a;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            border-bottom: none;
+        }
+
+        .hint-title {
+            font-weight: 500;
+            color: #00fa9a;
+            font-size: 1.05em;
+        }
+
+        .hint-icon {
+            font-size: 1.2em;
+            color: #00fa9a;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hint-header.active .hint-icon {
+            transform: rotate(180deg);
+        }
+
+        .hint-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
+                        padding 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.5s ease;
+            background: rgba(0, 250, 154, 0.05);
+            border: 1px solid rgba(0, 250, 154, 0.3);
+            border-top: none;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            opacity: 0;
+            padding: 0 20px;
+        }
+
+        .hint-content.active {
+            max-height: 800px;
+            padding: 20px;
+            border-color: #00fa9a;
+            opacity: 1;
+        }
+
+        .hint-content p {
+            color: #d0d0d0;
+            line-height: 1.8;
+            margin: 0;
+        }
+
+        /* 提交区域 */
+        .submit-container {
+            background: rgba(33, 37, 41, 0.9);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.5);
+        }
+
+        .submit-input-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .submit-input {
+            flex: 1;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: white;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .submit-input:focus {
+            outline: none;
+            border-color: rgba(90, 240, 255, 0.5);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .submit-button {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #5a9fd4, #20b2aa);
+            border: none;
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(90, 240, 255, 0.3);
+        }
+
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(90, 240, 255, 0.5);
+        }
+
+        .submit-button:active {
+            transform: translateY(0);
+        }
+
+        /* 提交反馈消息 */
+        .feedback-message {
+            margin-top: 15px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            display: none;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feedback-message.success {
+            background: rgba(85, 238, 160, 0.2);
+            border: 1px solid #55EEA0;
+            color: #55EEA0;
+            display: block;
+        }
+
+        .feedback-message.error {
+            background: rgba(255, 85, 85, 0.2);
+            border: 1px solid #ff5555;
+            color: #ff5555;
+            display: block;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .puzzle-title {
+                font-size: 2em;
+            }
+
+            .tab-container {
+                flex-wrap: wrap;
+            }
+
+            .tab-button {
+                padding: 10px 20px;
+                font-size: 0.9em;
+            }
+
+            .content-container {
+                padding: 25px;
+            }
+
+            .submit-input-group {
+                flex-direction: column;
+            }
+
+            .submit-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 浮动圆圈 -->
+    <div class="floating-circle circle1" id="circle1"></div>
+    <div class="floating-circle circle2" id="circle2"></div>
+
+    <div class="container">
+        <!-- 返回按钮 -->
+        <a href="../../areaB.html" class="back-button">
+            <span>←</span>
+            <span>返回题目列表</span>
+        </a>
+
+        <!-- 题目标题 -->
+        <h1 class="puzzle-title">拼好题</h1>
+
+        <!-- 标签切换 - 新增外层wrapper -->
+        <div class="tab-wrapper">
+            <div class="tab-container">
+                <!-- 滑动指示器 -->
+                <div class="tab-slider" id="tabSlider"></div>
+                
+                <button class="tab-button active" data-tab="puzzle">题目</button>
+                <button class="tab-button" data-tab="hint">提示</button>
+                <button class="tab-button" data-tab="solution">解析</button>
+            </div>
+        </div>
+
+        <!-- 内容区域 -->
+        <div class="content-container">
+             <!-- 题目内容 -->
+            <div class="content-section active" id="puzzle">
+                <img src="B9.png" alt="B9">
+            </div>
+
+            <!-- 提示内容 -->
+            <div class="content-section" id="hint">
+<div class="hint-accordion">
+    <div class="hint-header" onclick="toggleHint(this)">
+        <span class="hint-title">提示1. 我毫无头绪</span>
+        <span class="hint-icon">▼</span>
+    </div>
+    <div class="hint-content">
+        <p>这些日谜中的符号表达的是不同的含义，你需要推出每个符号的含义，得到①-⑤对应的内容，最后需要提交一个长度为(6 6)的短语</p>
+    </div>
+</div>
+
+<div class="hint-accordion">
+    <div class="hint-header" onclick="toggleHint(this)">
+        <span class="hint-title">提示2. []是什么意思？</span>
+        <span class="hint-icon">▼</span>
+    </div>
+    <div class="hint-content">
+        <p>以第一条为例，[⭐]T=START，中括号内的符号与等式右侧的单词有关联</p>
+    </div>
+</div>
+
+<div class="hint-accordion">
+    <div class="hint-header" onclick="toggleHint(this)">
+        <span class="hint-title">提示3. 三个字的是什么意思？</span>
+        <span class="hint-icon">▼</span>
+    </div>
+    <div class="hint-content">
+        <p>三个字同属于一个成语，前两个字和后两个字分别可以成词</p>
+    </div>
+</div>
+
+<div class="hint-accordion">
+    <div class="hint-header" onclick="toggleHint(this)">
+        <span class="hint-title">提示4. →是什么意思？</span>
+        <span class="hint-icon">▼</span>
+    </div>
+    <div class="hint-content">
+        <p>箭头前后的两个部分可以组成常见词语</p>
+    </div>
+</div>
+
+<div class="hint-accordion">
+    <div class="hint-header" onclick="toggleHint(this)">
+        <span class="hint-title">提示5. 【】是什么意思？</span>
+        <span class="hint-icon">▼</span>
+    </div>
+    <div class="hint-content">
+        <p>以第八条为例，后两个字是"钟情"</p>
+    </div>
+</div>
+
+<div class="hint-accordion">
+    <div class="hint-header" onclick="toggleHint(this)">
+        <span class="hint-title">提示6. 黑底的数字是什么意思？</span>
+        <span class="hint-icon">▼</span>
+    </div>
+    <div class="hint-content">
+        <p>以第四条为例，横着的8是旋转90度的H，即"工"</p>
+    </div>
+</div>
+
+<div class="hint-accordion">
+    <div class="hint-header" onclick="toggleHint(this)">
+        <span class="hint-title">提示7. 一堆没有括号的表情是什么意思？</span>
+        <span class="hint-icon">▼</span>
+    </div>
+    <div class="hint-content">
+        <p>以第五条为例，切分=七刀八刀</p>
+    </div>
+</div>
+
+<div class="hint-accordion">
+    <div class="hint-header" onclick="toggleHint(this)">
+        <span class="hint-title">提示8. 「」是什么意思？</span>
+        <span class="hint-icon">▼</span>
+    </div>
+    <div class="hint-content">
+        <p>以第八条为例，「👁」为"一见"</p>
+    </div>
+</div>
+
+<div class="hint-accordion">
+    <div class="hint-header" onclick="toggleHint(this)">
+        <span class="hint-title">提示9. 我知道了①②③④⑤都是什么了，但我仍然不会提取？</span>
+        <span class="hint-icon">▼</span>
+    </div>
+    <div class="hint-content">
+        <p>你需要对得到的内容再次使用题中出现的规则，最终得到两个常见的英文单词</p>
+    </div>
+</div>
+            </div>
+
+            <!-- 解析内容 -->
+            <div class="content-section" id="solution">
+                <p>得到所有规则（详见提示）后，我们将clue进行分组，
+                    最终得到：什、仁、仁、化、仇。再执行一次括号运算就可以得到答案。</p>
+                <p>因此，本题的答案是<b>THIRTY PEOPLE</b>。</p>
+            </div>
+        </div>
+
+        <!-- 提交区域 -->
+        <div class="submit-container">
+            <div class="submit-input-group">
+                <input type="text" class="submit-input" id="answerInput" placeholder="请输入答案...">
+                <button class="submit-button" onclick="submitAnswer()">提交</button>
+            </div>
+            <div class="feedback-message" id="feedbackMessage"></div>
+        </div>
+    </div>
+
+    <script>
+        // 浮动圆圈动画类
+        class FloatingCircle {
+            constructor(elementId, speed) {
+                this.element = document.getElementById(elementId);
+                this.speed = speed;
+                
+                const rect = this.element.getBoundingClientRect();
+                this.radius = rect.width / 2;
+                
+                this.x = Math.random() * window.innerWidth;
+                this.y = Math.random() * window.innerHeight;
+                
+                this.setRandomDirection();
+                this.animate_bg_circle();
+                this.startDirectionChange();
+            }
+            
+            setRandomDirection() {
+                const angle = Math.random() * Math.PI * 2;
+                this.vx = Math.cos(angle) * this.speed;
+                this.vy = Math.sin(angle) * this.speed;
+            }
+            
+            startDirectionChange() {
+                const changeDirection = () => {
+                    this.setRandomDirection();
+                    const nextChange = 3000 + Math.random() * 7000;
+                    setTimeout(changeDirection, nextChange);
+                };
+                
+                const firstChange = 5000 + Math.random() * 5000;
+                setTimeout(changeDirection, firstChange);
+            }
+            
+            checkBounds() {
+                if (this.x - this.radius < 0 || this.x + this.radius > window.innerWidth) {
+                    this.vx = -this.vx;
+                    this.x = Math.max(this.radius, Math.min(window.innerWidth - this.radius, this.x));
+                }
+                
+                if (this.y - this.radius < 0 || this.y + this.radius > window.innerHeight) {
+                    this.vy = -this.vy;
+                    this.y = Math.max(this.radius, Math.min(window.innerHeight - this.radius, this.y));
+                }
+            }
+            
+            animate_bg_circle() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                this.checkBounds();
+                
+                this.element.style.transform = `translate(${this.x - this.radius}px, ${this.y - this.radius}px)`;
+                
+                requestAnimationFrame(() => this.animate_bg_circle());
+            }
+        }
+        
+        // 初始化浮动圆圈
+        new FloatingCircle('circle1', 0.5);
+        new FloatingCircle('circle2', 0.3);
+
+        // 标签切换功能 - 带滑动效果
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const contentSections = document.querySelectorAll('.content-section');
+        const submitContainer = document.querySelector('.submit-container');
+        const tabSlider = document.getElementById('tabSlider');
+
+        // 初始化滑块位置
+        function initSlider() {
+            const activeButton = document.querySelector('.tab-button.active');
+            updateSliderPosition(activeButton);
+        }
+
+        // 更新滑块位置
+        function updateSliderPosition(button) {
+            const buttonRect = button.getBoundingClientRect();
+            const containerRect = button.parentElement.getBoundingClientRect();
+            
+            const left = buttonRect.left - containerRect.left - 6;
+            const width = buttonRect.width;
+            
+            tabSlider.style.width = `${width}px`;
+            tabSlider.style.transform = `translateX(${left}px)`;
+        }
+
+        // 页面加载时初始化
+        window.addEventListener('load', initSlider);
+        window.addEventListener('resize', initSlider);
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // 移除所有活动状态
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                contentSections.forEach(section => section.classList.remove('active'));
+
+                // 添加当前活动状态
+                button.classList.add('active');
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+
+                // 更新滑块位置
+                updateSliderPosition(button);
+
+                // 仅在"题目"标签时显示提交容器
+                if (tabId === 'puzzle') {
+                    submitContainer.style.display = 'block';
+                } else {
+                    submitContainer.style.display = 'none';
+                }
+            });
+        });
+
+        // 提示切换功能
+        function toggleHint(header) {
+            const content = header.nextElementSibling;
+            const isActive = header.classList.contains('active');
+
+            if (isActive) {
+                header.classList.remove('active');
+                content.classList.remove('active');
+            } else {
+                header.classList.add('active');
+                content.classList.add('active');
+            }
+        }
+
+        // 提交答案功能
+        function submitAnswer() {
+            const input = document.getElementById('answerInput');
+            const feedback = document.getElementById('feedbackMessage');
+            const answer = input.value.trim();
+            const correctAnswer = 'THIRTY PEOPLE';
+
+            // 清除之前的反馈样式
+            feedback.classList.remove('success', 'error');
+
+            if (answer === '') {
+                feedback.textContent = '请输入答案！';
+                feedback.classList.add('error');
+                return;
+            }
+
+            // 标准化答案：转大写并移除所有空格
+            const normalizedAnswer = answer.toUpperCase().replace(/\s+/g, '');
+            const normalizedCorrect = correctAnswer.toUpperCase().replace(/\s+/g, '');
+
+            // 检查答案
+            if (normalizedAnswer === normalizedCorrect) {
+                feedback.textContent = `恭喜你，答案正确！本题的答案是【${correctAnswer}】`;
+                feedback.classList.add('success');
+            } else {
+                feedback.textContent = '答案错误！';
+                feedback.classList.add('error');
+            }
+        }
+
+        // 支持回车键提交
+        document.getElementById('answerInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitAnswer();
+            }
+        });
+    </script>
+</body>
+</html>
